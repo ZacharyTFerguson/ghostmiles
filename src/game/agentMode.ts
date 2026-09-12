@@ -11,7 +11,6 @@ export type AgentConfig = {
 };
 
 function readParam(search: string, key: string): string | null {
-  if (typeof window === "undefined") return null;
   return new URLSearchParams(search).get(key);
 }
 

@@ -17,7 +17,7 @@ export function GpsTerminal() {
   if (!compiled) return null;
 
   return (
-    <section className="border-b border-border px-3 py-3">
+    <section className="border-b border-border px-3 py-3" data-testid="gps-terminal">
       <div className="mb-2 flex items-center gap-2 text-fg-muted">
         <Terminal className="size-3.5" strokeWidth={1.75} />
         <h2 className="font-mono text-[10px] uppercase tracking-[0.18em]">Milelog</h2>
@@ -26,10 +26,10 @@ export function GpsTerminal() {
         No odometer totals. Range query only.
       </p>
       <div className="flex flex-wrap gap-2">
-        <button type="button" className="btn-ghost" onClick={markGpsFrom}>
+        <button type="button" className="btn-ghost" data-testid="gps-from" onClick={markGpsFrom}>
           From {gpsFrom != null ? formatClock(gpsFrom) : "—"}
         </button>
-        <button type="button" className="btn-ghost" onClick={markGpsTo}>
+        <button type="button" className="btn-ghost" data-testid="gps-to" onClick={markGpsTo}>
           To {gpsTo != null ? formatClock(gpsTo) : "—"}
         </button>
         <select
@@ -48,6 +48,7 @@ export function GpsTerminal() {
         <button
           type="button"
           className="btn-solid"
+          data-testid="gps-query"
           onClick={() => runQuery(unit === "ALL" ? "ALL" : unit)}
         >
           Query

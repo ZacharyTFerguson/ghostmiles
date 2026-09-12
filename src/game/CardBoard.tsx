@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Ban, Check } from "lucide-react";
 import type { AssignmentTarget, CompiledCard } from "./types";
 import { useGame } from "./store";
@@ -10,6 +10,7 @@ export function CardBoard() {
   const selectedCardId = useGame((s) => s.selectedCardId);
   const shakeIds = useGame((s) => s.shakeIds);
   const status = useGame((s) => s.status);
+  const agent = useGame((s) => s.agent);
   const selectCard = useGame((s) => s.selectCard);
   const assign = useGame((s) => s.assign);
   const unassign = useGame((s) => s.unassign);
@@ -19,6 +20,7 @@ export function CardBoard() {
   if (!compiled) return null;
 
   const unassigned = compiled.cards.filter((c) => !assignments[c.id]);
+  const nextUnassignedId = unassigned[0]?.id ?? null;
   const target = held ?? selectedCardId;
 
   function dropOn(slot: AssignmentTarget) {
@@ -34,12 +36,13 @@ export function CardBoard() {
         <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
           Fuel blocks
         </p>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1" data-testid="fuel-block-list">
           {unassigned.map((card) => (
             <FuelBlock
               key={card.id}
               card={card}
               active={target === card.id}
+              nextUp={agent.enabled && card.id === nextUnassignedId && target !== card.id}
               shake={shakeIds.includes(card.id)}
               onPick={() => {
                 setHeld(card.id);
@@ -145,9 +148,13 @@ export function CardBoard() {
         </div>
       </div>
       <div className="border-t border-border px-3 py-3">
-        {status && <p className="mb-2 text-xs text-danger">{status}</p>}
+        {status && (
+          <p className="mb-2 text-xs text-danger" data-testid="assign-status">
+            {status}
+          </p>
+        )}
         <button type="button" className="btn-solid w-full" data-testid="file-dossier" onClick={submit}>
-          File dossier
+          File dossier{agent.enabled && unassigned.length === 0 ? " (Enter)" : ""}
         </button>
       </div>
     </div>
@@ -157,22 +164,38 @@ export function CardBoard() {
 function FuelBlock({
   card,
   active,
+  nextUp,
   shake,
   onPick,
 }: {
   card: CompiledCard;
   active: boolean;
+  nextUp: boolean;
   shake: boolean;
   onPick: () => void;
 }) {
+  const ref = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (active && ref.current) {
+      ref.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      ref.current.focus({ preventScroll: true });
+    }
+  }, [active, card.id]);
+
   return (
     <button
+      ref={ref}
       type="button"
       data-testid={`fuel-block-${card.id}`}
       aria-label={`Fuel block FC-${card.cardNumber} at ${formatClock(card.timeMin)}`}
       onClick={onPick}
-      className={`rounded-md border px-3 py-2.5 text-left transition-colors ${
-        active ? "border-fg bg-bg-subtle" : "border-border bg-bg-elevated hover:border-border-strong"
+      className={`rounded-md border px-3 py-2.5 text-left transition-colors outline-none ${
+        active
+          ? "agent-card-selected border-accent bg-bg-subtle ring-2 ring-accent/60"
+          : nextUp
+            ? "agent-card-next border-accent/50 bg-bg-elevated ring-1 ring-accent/30"
+            : "border-border bg-bg-elevated hover:border-border-strong"
       } ${shake ? "animate-shake" : ""}`}
     >
       <div className="flex items-baseline justify-between gap-2">
@@ -183,6 +206,11 @@ function FuelBlock({
       <div className="mt-1 font-mono text-[11px] text-fg-subtle">
         {card.gallons.toFixed(1)} gal · ${card.dollars.toFixed(2)}
       </div>
+      {nextUp && (
+        <span className="mt-1 block font-mono text-[10px] uppercase tracking-wider text-accent">
+          Next up
+        </span>
+      )}
     </button>
   );
 }

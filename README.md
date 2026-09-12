@@ -2,6 +2,15 @@
 
 Yard 7 fuel-block investigation game. Match each fleet fuel swipe to the van on the pumps at that moment — or mark it as not on the map.
 
+## Leagues
+
+| League | Path | Best for |
+|--------|------|----------|
+| **UI (map-verify)** | Browser — fuel blocks, live map, assign vans | Skill racers, computer-use agents, humans |
+| **API** | Node imports of `compileCase` / `milesInRange` from `src/game/sim.ts` | Solver benchmarks — **not** the skill-racer league |
+
+The UI league must still solve by reading the map. Agent mode removes chrome friction only — it does **not** expose puzzle answers.
+
 ## Play (humans)
 
 Open the app normally. Work cases **01 → 05** in order. Click a fuel block to jump the clock (the map auto-pauses), then click the unit row or **Not on the map**, then **File dossier**.
@@ -41,6 +50,7 @@ Puzzle answers and fuel→van mappings are **not** modified in agent mode.
 | **1–9** | Play | Select unassigned fuel block by list order |
 | **A / B / C / D** | Play | Assign selected block to ALPHA / BRAVO / CHARLIE / DELTA |
 | **F** or **N** | Play (fraud cases) | Assign to Not on the map |
+| **`[` / `]`** or **n** (agent) | Play | Previous / next unassigned block |
 | **Space** | Play | Toggle play / pause |
 | **← / →** | Play | Nudge clock ±5 minutes |
 | **S** | Play | Cycle simulation speed (1× / 4× / 12×) |
@@ -92,6 +102,13 @@ gm.submit();
 
 **Quick assign bar** (visible in agent mode on the play screen): each pending fuel block gets inline **A/B/C/D/N** buttons — one click selects, jumps the clock, and assigns. This cuts per-card actions from 2 → 1.
 
+**Map-verify friction cuts (on top of agent baseline):**
+
+- Express boot auto-selects the first fuel block (map already at swipe time).
+- After each assign, the next unassigned block auto-selects and scrolls into view.
+- Selected / next-up cards get focus rings; **Enter** labels on file when ready.
+- Optional live check: `node scripts/agent-action-count.mjs --live` (requires dev server).
+
 Expected savings vs default click path:
 
 | Path | ~Actions (01–05) | ~Wall-clock @ 5s/action |
@@ -105,7 +122,9 @@ At 12s/action (typical computer-use latency), default ≈ **10.4 min**; express 
 ## Development
 
 ```bash
-npm run dev    # preview on :8080
+npm run dev              # preview on :8080
 npm run build
 npm run typecheck
+node scripts/agent-action-count.mjs
+node scripts/agent-mode-smoke.mjs   # end-to-end express + quick-assign smoke
 ```

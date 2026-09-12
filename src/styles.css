@@ -61,6 +61,24 @@
   }
 }
 
+@keyframes agent-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 18%, transparent);
+  }
+}
+
+.agent-card-next {
+  animation: agent-pulse 2.4s ease-in-out infinite;
+}
+
+.agent-card-selected {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-accent) 45%, transparent);
+}
+
 @layer components {
   .btn-solid {
     display: inline-flex;

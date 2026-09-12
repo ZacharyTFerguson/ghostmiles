@@ -57,10 +57,16 @@ type GameActions = {
   skipDebrief: () => void;
   assignSelected: (target: AssignmentTarget) => void;
   selectCardByIndex: (index: number) => void;
+  selectNextUnassigned: () => string | null;
+  selectPrevUnassigned: () => string | null;
   startPlayAt: (index: number) => void;
   toggleMute: () => void;
   setStatus: (s: string | null) => void;
 };
+
+function unassignedIds(compiled: CompiledCase, assignments: Record<string, AssignmentTarget | null>) {
+  return compiled.cards.filter((c) => !assignments[c.id]).map((c) => c.id);
+}
 
 function emptyAssign(compiled: CompiledCase): Record<string, AssignmentTarget | null> {
   const a: Record<string, AssignmentTarget | null> = {};
@@ -155,13 +161,16 @@ export const useGame = create<GameState & GameActions>((set, get) => ({
   startCase: () => {
     unlockAudio();
     sfxClick();
-    const { compiled } = get();
+    const { compiled, agent } = get();
     if (!compiled) return;
+    const firstId = unassignedIds(compiled, get().assignments)[0] ?? null;
+    const firstCard = firstId ? compiled.cards.find((c) => c.id === firstId) : null;
     set({
       screen: "play",
-      time: compiled.def.startMin,
+      time: firstCard?.timeMin ?? compiled.def.startMin,
       playing: false,
-      speed: get().agent.enabled ? 12 : 4,
+      speed: agent.enabled ? 12 : 4,
+      selectedCardId: agent.enabled ? firstId : get().selectedCardId,
     });
   },
 
@@ -183,9 +192,31 @@ export const useGame = create<GameState & GameActions>((set, get) => ({
   selectCardByIndex: (index) => {
     const { compiled } = get();
     if (!compiled) return;
-    const unassigned = compiled.cards.filter((c) => !get().assignments[c.id]);
-    const card = unassigned[index];
-    if (card) get().selectCard(card.id);
+    const ids = unassignedIds(compiled, get().assignments);
+    const id = ids[index];
+    if (id) get().selectCard(id);
+  },
+
+  selectNextUnassigned: () => {
+    const { compiled, assignments, selectedCardId } = get();
+    if (!compiled) return null;
+    const ids = unassignedIds(compiled, assignments);
+    if (!ids.length) return null;
+    const idx = selectedCardId ? ids.indexOf(selectedCardId) : -1;
+    const next = ids[(idx + 1) % ids.length];
+    get().selectCard(next);
+    return next;
+  },
+
+  selectPrevUnassigned: () => {
+    const { compiled, assignments, selectedCardId } = get();
+    if (!compiled) return null;
+    const ids = unassignedIds(compiled, assignments);
+    if (!ids.length) return null;
+    const idx = selectedCardId ? ids.indexOf(selectedCardId) : 0;
+    const prev = ids[(idx - 1 + ids.length) % ids.length];
+    get().selectCard(prev);
+    return prev;
   },
 
   setPlaying: (v) => set({ playing: v }),
@@ -238,16 +269,21 @@ export const useGame = create<GameState & GameActions>((set, get) => ({
   selectCar: (id) => set({ selectedCarId: id }),
 
   assign: (cardId, target) => {
-    const card = get().compiled?.cards.find((c) => c.id === cardId);
+    const s = get();
+    const card = s.compiled?.cards.find((c) => c.id === cardId);
     sfxAssign();
-    set((s) => ({
-      assignments: { ...s.assignments, [cardId]: target },
-      selectedCardId: null,
-      time: card ? card.timeMin : s.time,
+    const nextAssignments = { ...s.assignments, [cardId]: target };
+    const remaining = s.compiled ? unassignedIds(s.compiled, nextAssignments) : [];
+    const nextId = s.agent.enabled && remaining.length ? remaining[0] : null;
+    const nextCard = nextId ? s.compiled?.cards.find((c) => c.id === nextId) : null;
+    set({
+      assignments: nextAssignments,
+      selectedCardId: nextId,
+      time: nextCard?.timeMin ?? (card ? card.timeMin : s.time),
       playing: false,
       shakeIds: s.shakeIds.filter((x) => x !== cardId),
       status: null,
-    }));
+    });
   },
 
   unassign: (cardId) => {

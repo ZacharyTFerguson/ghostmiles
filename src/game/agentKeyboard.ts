@@ -76,6 +76,17 @@ export function handleAgentKeydown(e: KeyboardEvent) {
     return;
   }
 
+  if (agent.enabled && e.key === "[") {
+    e.preventDefault();
+    s.selectPrevUnassigned();
+    return;
+  }
+  if (agent.enabled && (e.key === "]" || e.key === "n" || e.key === "N")) {
+    e.preventDefault();
+    s.selectNextUnassigned();
+    return;
+  }
+
   const digit = e.key >= "1" && e.key <= "9" ? Number(e.key) - 1 : -1;
   if (digit >= 0) {
     e.preventDefault();
