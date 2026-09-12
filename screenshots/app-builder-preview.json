@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Ghost Miles",
+      "hasCanvas": true,
+      "bodyTextLen": 342,
+      "bodyTextHash": "bf1aea56c3782f659d4e815a0345bcb3028e2a332c72842d66f07fd0aca332a4",
+      "bodyTextPrefix": "YARD 7 · FLEET INVESTIGATIONS GHOST MILES The GPS does not keep ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Ghost Miles",
+      "hasCanvas": true,
+      "bodyTextLen": 342,
+      "bodyTextHash": "bf1aea56c3782f659d4e815a0345bcb3028e2a332c72842d66f07fd0aca332a4",
+      "bodyTextPrefix": "YARD 7 · FLEET INVESTIGATIONS GHOST MILES The GPS does not keep ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

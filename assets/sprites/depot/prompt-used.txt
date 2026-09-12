@@ -1,0 +1,3 @@
+A single true top-down overhead sprite of a small warehouse depot building, viewed from directly above like a satellite. Clean HD 2D game asset style, not pixel art. A rectangular pale industrial warehouse with a flat gray roof, a few skylights, a loading-dock strip along one long side. Compact and readable on a city map. No trucks, no people, no parking lot.
+
+Background is 100% solid flat #FF00FF magenta, no gradients, no texture, no ground plane, no shadow under the building. No text, no labels, no UI, no watermark. Entire building fits fully inside the image with generous magenta margin on all four sides. No part may touch or cross the image edge.

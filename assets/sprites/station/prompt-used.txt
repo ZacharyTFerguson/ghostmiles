@@ -1,0 +1,3 @@
+A single true top-down overhead sprite of a small roadside gas station, viewed from directly above like a satellite. Clean HD 2D game asset style, not pixel art. A rectangular pale canopy covering two rows of four fuel pump islands, a small beige convenience kiosk attached on one short side, faint parking stripes beside the kiosk. Compact and readable on a city map. No vehicles, no people.
+
+Background is 100% solid flat #FF00FF magenta, no gradients, no texture, no ground plane, no shadow under the building. No text, no labels, no prices, no UI, no watermark. Entire station fits fully inside the image with generous magenta margin on all four sides. No part may touch or cross the image edge.

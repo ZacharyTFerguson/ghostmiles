@@ -1,0 +1,9 @@
+{
+  "map": "/game/map-base.jpg",
+  "props": [
+    { "id": "depot", "image": "/game/depot.png", "x": 0.115, "y": 0.5, "scale": 0.13, "layer": "props" },
+    { "id": "northside", "image": "/game/station.png", "x": 0.48, "y": 0.155, "scale": 0.11, "layer": "props" },
+    { "id": "riverside", "image": "/game/station.png", "x": 0.915, "y": 0.5, "scale": 0.1, "layer": "props" },
+    { "id": "southside", "image": "/game/station.png", "x": 0.5, "y": 0.9, "scale": 0.1, "layer": "props" }
+  ]
+}
