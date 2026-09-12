@@ -64,9 +64,36 @@ export function MapCanvas({ ambient = false }: { ambient?: boolean }) {
   }, []);
 
   const caseId = useGame((s) => s.compiled?.def.id);
+  const agent = useGame((s) => s.agent.enabled);
+  const selectedCardId = useGame((s) => s.selectedCardId);
+
   useEffect(() => {
     trails.current.clear();
   }, [caseId]);
+
+  useEffect(() => {
+    if (!agent || !selectedCardId || ambient) return;
+    const compiled = useGame.getState().compiled;
+    const card = compiled?.cards.find((c) => c.id === selectedCardId);
+    if (!card) return;
+    const st = getStation(card.stationId);
+    const canvas = canvasRef.current;
+    const wrap = wrapRef.current;
+    const map = assets.current?.map;
+    if (!canvas || !wrap || !map) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const cw = wrap.clientWidth * dpr;
+    const ch = wrap.clientHeight * dpr;
+    const zoom = 1.85;
+    const scale = Math.min(cw / map.width, ch / map.height) * zoom;
+    const w = map.width * scale;
+    const h = map.height * scale;
+    const sx = st.propX * w;
+    const sy = st.propY * h;
+    cam.current.zoom = zoom;
+    cam.current.panX = cw / 2 - (w / 2 + sx);
+    cam.current.panY = ch / 2 - (h / 2 + sy);
+  }, [agent, selectedCardId, ambient, caseId]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -316,13 +343,20 @@ function draw(
     ctx.restore();
 
     if (!ambient) {
-      ctx.font = `600 ${Math.max(10, rect.w * 0.011)}px "Barlow Condensed", sans-serif`;
+      const atSwipeStation =
+        selectedCard &&
+        highlightStation &&
+        !pose.moving &&
+        pose.nodeId === highlightStation.node;
+      const labelSize = atSwipeStation && state.agent.enabled ? 0.014 : 0.011;
+      ctx.font = `600 ${Math.max(10, rect.w * labelSize)}px "Barlow Condensed", sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.fillStyle = "rgba(12, 13, 15, 0.78)";
       const tw = ctx.measureText(car.callsign).width;
-      ctx.fillRect(p.x - tw / 2 - 5, p.y - vanH * 0.72 - 13, tw + 10, 14);
-      ctx.fillStyle = car.color;
+      const lh = atSwipeStation && state.agent.enabled ? 16 : 14;
+      ctx.fillRect(p.x - tw / 2 - 5, p.y - vanH * 0.72 - lh - 1, tw + 10, lh);
+      ctx.fillStyle = atSwipeStation && pose.fueling ? "#e8e6e1" : car.color;
       ctx.fillText(car.callsign, p.x, p.y - vanH * 0.72);
     }
   }

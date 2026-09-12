@@ -2,6 +2,8 @@
 
 Yard 7 fuel-block investigation game. Match each fleet fuel swipe to the van on the pumps at that moment — or mark it as not on the map.
 
+> **Agent-speed baseline:** This repo recreates local commit `71fdfd5` (`feat: agent speed mode for Ghost Miles skill racers`, branch `cursor/agent-speed-mode-48a6`) plus map-verify friction cuts on top. Puzzle answers unchanged.
+
 ## Leagues
 
 | League | Path | Best for |
@@ -50,7 +52,7 @@ Puzzle answers and fuel→van mappings are **not** modified in agent mode.
 | **1–9** | Play | Select unassigned fuel block by list order |
 | **A / B / C / D** | Play | Assign selected block to ALPHA / BRAVO / CHARLIE / DELTA |
 | **F** or **N** | Play (fraud cases) | Assign to Not on the map |
-| **`[` / `]`** or **n** (agent) | Play | Previous / next unassigned block |
+| **`[` / `]`** (agent) | Play | Previous / next unassigned block |
 | **Space** | Play | Toggle play / pause |
 | **← / →** | Play | Nudge clock ±5 minutes |
 | **S** | Play | Cycle simulation speed (1× / 4× / 12×) |
@@ -74,8 +76,25 @@ Agents can use hotkeys instead of click snapshots for faster assign loops.
 | `file-dossier` | Submit dossier |
 | `next-case` | Debrief continue |
 | `skip-debrief` | Agent skip debrief |
+| `pump-glance` | Agent pump readout at selected swipe time |
+| `pump-van-{carId}` | Van on pumps at swipe (map-derived, not answers) |
+| `pump-empty` | No fleet van on pumps at swipe |
 
-### Programmatic API
+### RECORD-UI / map-verify race path
+
+Skill racers in the **UI league** still must assign correctly from the map — agent mode only removes chrome.
+
+**Race URL:** `/?agent=1&express=1&case=01`
+
+Fastest verified loop per case:
+
+1. Land in play — first fuel block selected, map at swipe time, **Pump glance** shows vans on pads.
+2. **Quick-assign bar** — one click per card (`agent-assign-{cardId}-{vanId}`) *or* `1`→select, `A`→assign hotkeys.
+3. **Enter** to file when all seated — express auto-chains to the next case.
+
+Map-verify aids (agent only): auto-pan to station, enlarged callsign labels at swipe station, pump glance panel, auto-select next block after assign.
+
+### Programmatic API (API league — not skill-racer scoring)
 
 When `agent=1`, after boot:
 
@@ -102,9 +121,10 @@ gm.submit();
 
 **Quick assign bar** (visible in agent mode on the play screen): each pending fuel block gets inline **A/B/C/D/N** buttons — one click selects, jumps the clock, and assigns. This cuts per-card actions from 2 → 1.
 
-**Map-verify friction cuts (on top of agent baseline):**
+**Map-verify friction cuts (on top of 71fdfd5 baseline):**
 
 - Express boot auto-selects the first fuel block (map already at swipe time).
+- **Pump glance** overlay + auto-pan to station + larger van labels at swipe pads.
 - After each assign, the next unassigned block auto-selects and scrolls into view.
 - Selected / next-up cards get focus rings; **Enter** labels on file when ready.
 - Optional live check: `node scripts/agent-action-count.mjs --live` (requires dev server).

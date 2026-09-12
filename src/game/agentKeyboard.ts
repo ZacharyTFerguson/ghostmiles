@@ -81,7 +81,7 @@ export function handleAgentKeydown(e: KeyboardEvent) {
     s.selectPrevUnassigned();
     return;
   }
-  if (agent.enabled && (e.key === "]" || e.key === "n" || e.key === "N")) {
+  if (agent.enabled && e.key === "]") {
     e.preventDefault();
     s.selectNextUnassigned();
     return;

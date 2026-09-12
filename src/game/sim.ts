@@ -193,4 +193,33 @@ export function fuelingCarAt(
   return null;
 }
 
+export type VanAtStation = {
+  carId: string;
+  callsign: string;
+  color: string;
+  fueling: boolean;
+};
+
+/** Map-verify helper: fleet vans at a station node at time t (visible on map; not puzzle answers). */
+export function vansAtStationAtTime(
+  cars: CompiledCar[],
+  stationNode: string,
+  t: number,
+): VanAtStation[] {
+  return cars
+    .filter((car) => {
+      const pose = poseAt(car, t);
+      return !pose.moving && pose.nodeId === stationNode;
+    })
+    .map((car) => {
+      const pose = poseAt(car, t);
+      return {
+        carId: car.id,
+        callsign: car.callsign,
+        color: car.color,
+        fueling: pose.fueling,
+      };
+    });
+}
+
 

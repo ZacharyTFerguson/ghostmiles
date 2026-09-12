@@ -6,6 +6,7 @@ import { CardBoard } from "./CardBoard";
 import { GpsTerminal } from "./GpsTerminal";
 import { Timeline, TopBar } from "./Hud";
 import { MapCanvas } from "./MapCanvas";
+import { PumpGlance } from "./PumpGlance";
 import { BriefScreen, DebriefScreen, TitleScreen } from "./Screens";
 import { useGame } from "./store";
 
@@ -38,6 +39,7 @@ export function GameApp() {
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <div className="relative min-h-0 flex-[1.15]">
           <MapCanvas />
+          <PumpGlance />
           <Timeline />
         </div>
         <aside className="flex h-[48%] min-h-0 flex-col border-t border-border bg-bg-elevated lg:h-auto lg:w-[380px] lg:border-l lg:border-t-0 xl:w-[400px]">

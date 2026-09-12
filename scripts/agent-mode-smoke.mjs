@@ -17,6 +17,10 @@ async function main() {
     throw new Error(`Expected play/01, got ${JSON.stringify(phase)}`);
   }
 
+  await page.waitForSelector('[data-testid="pump-glance"]');
+  const autoSelected = await page.evaluate(() => window.__ghostMiles.getState().selectedCardId);
+  if (!autoSelected) throw new Error("Express boot should auto-select first fuel block");
+
   // Quick assign case 01: c1a→alpha, c1b→bravo, c1c→charlie
   await page.click('[data-testid="agent-assign-c1a-alpha"]');
   await page.click('[data-testid="agent-assign-c1b-bravo"]');

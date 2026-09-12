@@ -111,7 +111,7 @@ export function BriefScreen() {
       <p className="mt-8 max-w-xl text-xs text-fg-subtle">
         Click a fuel block to jump the clock (map auto-pauses). Click the unit that was on the pumps — or
         Not on the map when no van was there. Hotkeys: 1–9 select block, A/B/C/D assign van, F/N fraud,
-        [ ] cycle blocks (agent), Enter file dossier.
+        [ / ] cycle blocks (agent), Enter file dossier.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
         <button type="button" className="btn-solid" data-testid="open-map" onClick={startCase}>
