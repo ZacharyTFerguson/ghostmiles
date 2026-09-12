@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { readAgentConfig, type AgentConfig } from "./agentMode";
 import { sfxAssign, sfxClick, sfxError, sfxSuccess, sfxWhoosh, setMuted, unlockAudio } from "./audio";
 import { CASES } from "./cases";
 import { loadSave, markCompleted, writeSave } from "./save";
@@ -31,6 +32,7 @@ type GameState = {
   completed: string[];
   muted: boolean;
   wrongCount: number;
+  agent: AgentConfig;
 };
 
 type GameActions = {
@@ -51,6 +53,11 @@ type GameActions = {
   runQuery: (carId: string | "ALL") => void;
   submit: () => void;
   nextCase: () => void;
+  skipBrief: () => void;
+  skipDebrief: () => void;
+  assignSelected: (target: AssignmentTarget) => void;
+  selectCardByIndex: (index: number) => void;
+  startPlayAt: (index: number) => void;
   toggleMute: () => void;
   setStatus: (s: string | null) => void;
 };
@@ -84,19 +91,28 @@ export const useGame = create<GameState & GameActions>((set, get) => ({
   completed: [],
   muted: false,
   wrongCount: 0,
+  agent: readAgentConfig(),
 
   boot: () => {
+    const agent = readAgentConfig();
     const save = loadSave();
-    setMuted(save.muted);
+    const muted = agent.enabled ? true : save.muted;
+    setMuted(muted);
     const compiled = compileCase(CASES[0]);
     set({
       completed: save.completed,
-      muted: save.muted,
+      muted,
       compiled,
       time: compiled.def.startMin,
-      playing: true,
+      playing: !agent.caseNumber,
       screen: "title",
+      agent,
     });
+
+    if (agent.caseNumber) {
+      const idx = CASES.findIndex((c) => c.number === agent.caseNumber);
+      if (idx >= 0) get().startPlayAt(idx);
+    }
   },
 
   goTitle: () => {
@@ -144,9 +160,32 @@ export const useGame = create<GameState & GameActions>((set, get) => ({
     set({
       screen: "play",
       time: compiled.def.startMin,
-      playing: true,
-      speed: 4,
+      playing: false,
+      speed: get().agent.enabled ? 12 : 4,
     });
+  },
+
+  skipBrief: () => get().startCase(),
+
+  skipDebrief: () => get().nextCase(),
+
+  startPlayAt: (index) => {
+    get().openBrief(index);
+    get().startCase();
+  },
+
+  assignSelected: (target) => {
+    const { selectedCardId } = get();
+    if (!selectedCardId) return;
+    get().assign(selectedCardId, target);
+  },
+
+  selectCardByIndex: (index) => {
+    const { compiled } = get();
+    if (!compiled) return;
+    const unassigned = compiled.cards.filter((c) => !get().assignments[c.id]);
+    const card = unassigned[index];
+    if (card) get().selectCard(card.id);
   },
 
   setPlaying: (v) => set({ playing: v }),
@@ -199,10 +238,13 @@ export const useGame = create<GameState & GameActions>((set, get) => ({
   selectCar: (id) => set({ selectedCarId: id }),
 
   assign: (cardId, target) => {
+    const card = get().compiled?.cards.find((c) => c.id === cardId);
     sfxAssign();
     set((s) => ({
       assignments: { ...s.assignments, [cardId]: target },
       selectedCardId: null,
+      time: card ? card.timeMin : s.time,
+      playing: false,
       shakeIds: s.shakeIds.filter((x) => x !== cardId),
       status: null,
     }));
@@ -260,6 +302,17 @@ export const useGame = create<GameState & GameActions>((set, get) => ({
     }
     sfxSuccess();
     const next = markCompleted(compiled.def.id);
+    const { caseIndex, agent } = get();
+    if (agent.express && caseIndex + 1 < CASES.length) {
+      set({
+        completed: next.completed,
+        playing: false,
+        status: null,
+        shakeIds: [],
+      });
+      get().startPlayAt(caseIndex + 1);
+      return;
+    }
     set({
       screen: "debrief",
       completed: next.completed,
@@ -270,9 +323,11 @@ export const useGame = create<GameState & GameActions>((set, get) => ({
   },
 
   nextCase: () => {
-    const { caseIndex } = get();
-    if (caseIndex + 1 < CASES.length) get().openBrief(caseIndex + 1);
-    else get().goTitle();
+    const { caseIndex, agent } = get();
+    if (caseIndex + 1 < CASES.length) {
+      if (agent.express) get().startPlayAt(caseIndex + 1);
+      else get().openBrief(caseIndex + 1);
+    } else get().goTitle();
   },
 
   toggleMute: () => {

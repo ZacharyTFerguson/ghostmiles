@@ -6,10 +6,17 @@ import { useGame } from "./store";
 export function TitleScreen() {
   const completed = useGame((s) => s.completed);
   const openBrief = useGame((s) => s.openBrief);
+  const startPlayAt = useGame((s) => s.startPlayAt);
   const muted = useGame((s) => s.muted);
   const toggleMute = useGame((s) => s.toggleMute);
+  const agent = useGame((s) => s.agent);
   const next = CASES.findIndex((c) => !completed.includes(c.id));
   const continueIndex = next === -1 ? 0 : next;
+
+  function beginCase(index: number) {
+    if (agent.express) startPlayAt(index);
+    else openBrief(index);
+  }
 
   return (
     <div className="relative isolate flex h-dvh flex-col overflow-hidden bg-bg">
@@ -27,8 +34,18 @@ export function TitleScreen() {
           The GPS does not keep totals. It only answers how far a van moved from one time to another.
           Match each fuel block to the van that was on the pumps — or prove the swipe never belonged to the fleet.
         </p>
+        {agent.enabled && (
+          <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+            Agent mode · Enter to continue · add &amp;express=1 to skip briefs
+          </p>
+        )}
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <button type="button" className="btn-solid" onClick={() => openBrief(continueIndex)}>
+          <button
+            type="button"
+            className="btn-solid"
+            data-testid="begin-investigation"
+            onClick={() => beginCase(continueIndex)}
+          >
             {completed.length === 0 ? "Begin investigation" : "Continue"}
           </button>
           <button type="button" className="btn-ghost" onClick={toggleMute}>
@@ -38,13 +55,15 @@ export function TitleScreen() {
         <ol className="mt-8 grid max-w-xl gap-2 sm:grid-cols-2">
           {CASES.map((c, i) => {
             const done = completed.includes(c.id);
-            const locked = i > 0 && !completed.includes(CASES[i - 1].id);
+            const locked = !agent.unlockAll && i > 0 && !completed.includes(CASES[i - 1].id);
             return (
               <li key={c.id}>
                 <button
                   type="button"
                   disabled={locked}
-                  onClick={() => openBrief(i)}
+                  data-testid={`case-${c.number}`}
+                  aria-label={`Case ${c.number} ${c.title}`}
+                  onClick={() => beginCase(i)}
                   className="flex w-full items-center gap-3 rounded-md border border-border bg-bg-elevated/80 px-3 py-2.5 text-left disabled:opacity-40"
                 >
                   <span className="font-mono text-xs text-fg-subtle">{c.number}</span>
@@ -69,7 +88,9 @@ export function TitleScreen() {
 export function BriefScreen() {
   const compiled = useGame((s) => s.compiled);
   const startCase = useGame((s) => s.startCase);
+  const skipBrief = useGame((s) => s.skipBrief);
   const goTitle = useGame((s) => s.goTitle);
+  const agent = useGame((s) => s.agent);
   if (!compiled) return null;
   const d = compiled.def;
 
@@ -88,13 +109,19 @@ export function BriefScreen() {
         ))}
       </div>
       <p className="mt-8 max-w-xl text-xs text-fg-subtle">
-        Select a fuel block to jump the clock. Drag it onto the van that was at that station — or, when the
-        pumps are empty, onto Not on the map.
+        Click a fuel block to jump the clock (map auto-pauses). Click the unit that was on the pumps — or
+        Not on the map when no van was there. Hotkeys: 1–9 select block, A/B/C/D assign van, F fraud,
+        Enter file dossier.
       </p>
       <div className="mt-8 flex flex-wrap gap-3">
-        <button type="button" className="btn-solid" onClick={startCase}>
+        <button type="button" className="btn-solid" data-testid="open-map" onClick={startCase}>
           Open the map
         </button>
+        {agent.enabled && (
+          <button type="button" className="btn-ghost" data-testid="skip-brief" onClick={skipBrief}>
+            Skip brief (Esc)
+          </button>
+        )}
         <button type="button" className="btn-ghost" onClick={goTitle}>
           Back
         </button>
@@ -107,7 +134,9 @@ export function DebriefScreen() {
   const compiled = useGame((s) => s.compiled);
   const caseIndex = useGame((s) => s.caseIndex);
   const nextCase = useGame((s) => s.nextCase);
+  const skipDebrief = useGame((s) => s.skipDebrief);
   const goTitle = useGame((s) => s.goTitle);
+  const agent = useGame((s) => s.agent);
   if (!compiled) return null;
   const last = caseIndex >= CASES.length - 1;
 
@@ -123,9 +152,14 @@ export function DebriefScreen() {
         ))}
       </div>
       <div className="mt-10 flex flex-wrap gap-3">
-        <button type="button" className="btn-solid" onClick={nextCase}>
+        <button type="button" className="btn-solid" data-testid="next-case" onClick={nextCase}>
           {last ? "Return to yard" : "Next case"}
         </button>
+        {agent.enabled && !last && (
+          <button type="button" className="btn-ghost" data-testid="skip-debrief" onClick={skipDebrief}>
+            Skip debrief (Esc)
+          </button>
+        )}
         <button type="button" className="btn-ghost" onClick={goTitle}>
           Case list
         </button>

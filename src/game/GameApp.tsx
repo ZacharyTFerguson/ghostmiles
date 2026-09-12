@@ -1,4 +1,7 @@
 import { useEffect } from "react";
+import { AgentAssignBar } from "./AgentAssignBar";
+import { handleAgentKeydown } from "./agentKeyboard";
+import { mountAgentBridge, signalAgentReady } from "./agentBridge";
 import { CardBoard } from "./CardBoard";
 import { GpsTerminal } from "./GpsTerminal";
 import { Timeline, TopBar } from "./Hud";
@@ -10,28 +13,15 @@ export function GameApp() {
   const screen = useGame((s) => s.screen);
   const boot = useGame((s) => s.boot);
   const compiled = useGame((s) => s.compiled);
-
   useEffect(() => {
+    mountAgentBridge();
     boot();
+    signalAgentReady();
   }, [boot]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (useGame.getState().screen !== "play") return;
-      const tag = (e.target as HTMLElement | null)?.tagName;
-      if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
-      const s = useGame.getState();
-      if (e.code === "Space") {
-        e.preventDefault();
-        s.setPlaying(!s.playing);
-      } else if (e.code === "ArrowRight") {
-        s.setTime(s.time + 5);
-      } else if (e.code === "ArrowLeft") {
-        s.setTime(s.time - 5);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", handleAgentKeydown);
+    return () => window.removeEventListener("keydown", handleAgentKeydown);
   }, []);
 
   if (!compiled) {
@@ -51,6 +41,7 @@ export function GameApp() {
           <Timeline />
         </div>
         <aside className="flex h-[48%] min-h-0 flex-col border-t border-border bg-bg-elevated lg:h-auto lg:w-[380px] lg:border-l lg:border-t-0 xl:w-[400px]">
+          <AgentAssignBar />
           <GpsTerminal />
           <CardBoard />
         </aside>

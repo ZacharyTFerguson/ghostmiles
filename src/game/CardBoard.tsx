@@ -61,6 +61,7 @@ export function CardBoard() {
             return (
               <div
                 key={car.id}
+                data-testid={`van-${car.id}`}
                 className="flex min-h-14 items-start gap-3 rounded-md border border-border bg-bg-subtle px-3 py-2"
               >
                 <span
@@ -70,6 +71,8 @@ export function CardBoard() {
                 <div className="min-w-0 flex-1">
                   <button
                     type="button"
+                    data-testid={`van-drop-${car.id}`}
+                    aria-label={`Assign to ${car.callsign}`}
                     onClick={() => dropOn(car.id)}
                     className="flex w-full items-baseline justify-between gap-2 text-left"
                   >
@@ -102,11 +105,16 @@ export function CardBoard() {
             );
           })}
           {compiled.def.allowFraud && (
-            <div className="flex min-h-14 items-start gap-3 rounded-md border border-dashed border-border-strong bg-bg px-3 py-2">
+            <div
+              data-testid="van-fraud"
+              className="flex min-h-14 items-start gap-3 rounded-md border border-dashed border-border-strong bg-bg px-3 py-2"
+            >
               <Ban className="mt-0.5 size-3.5 text-fg-muted" />
               <div className="min-w-0 flex-1">
                 <button
                   type="button"
+                  data-testid="van-drop-fraud"
+                  aria-label="Not on the map — fraud swipe"
                   onClick={() => dropOn("FRAUD")}
                   className="font-display text-sm font-semibold tracking-wide"
                 >
@@ -138,7 +146,7 @@ export function CardBoard() {
       </div>
       <div className="border-t border-border px-3 py-3">
         {status && <p className="mb-2 text-xs text-danger">{status}</p>}
-        <button type="button" className="btn-solid w-full" onClick={submit}>
+        <button type="button" className="btn-solid w-full" data-testid="file-dossier" onClick={submit}>
           File dossier
         </button>
       </div>
@@ -160,6 +168,8 @@ function FuelBlock({
   return (
     <button
       type="button"
+      data-testid={`fuel-block-${card.id}`}
+      aria-label={`Fuel block FC-${card.cardNumber} at ${formatClock(card.timeMin)}`}
       onClick={onPick}
       className={`rounded-md border px-3 py-2.5 text-left transition-colors ${
         active ? "border-fg bg-bg-subtle" : "border-border bg-bg-elevated hover:border-border-strong"
